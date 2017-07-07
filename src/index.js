@@ -20,15 +20,6 @@ class Board extends React.Component {
      */
     constructor(props){
         super(props);
-        /**
-         * @prop 
-         * @param {array} squares - value of game squares - 'X', 'O', null
-         * @param {bool} xIsNext - determines which value plays next
-         */
-        this.state = {
-            squares: Array(9).fill(null),
-            xIsNext: true,
-        };
     }
     /**
      * @method renders square component class
@@ -38,43 +29,16 @@ class Board extends React.Component {
     renderSquare(i) {
         return (
             <Square
-                value={this.state.squares[i]} 
-                onClick={() => this.handleClick(i)}
+                value={this.props.squares[i]} 
+                onClick={() => this.props.onClick(i)}
             />
         );
     }
-    /**
-     * @method handles square click event
-     * @param {*} i 
-     */
-    handleClick(i){
-        //* copies the squares array for immutability */
-        const squares = this.state.squares.slice();
-        if (calculateWinner(squares) || squares[i]){
-            return;
-        }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        //sets this.state.squares equal to the array that was just copied
-        this.setState({
-            squares:squares,
-            xIsNext: !this.state.xIsNext,
-        });
-    }
 
     render() {
-        /** calls helper function to determine game status */
-        const winner = calculateWinner(this.state.squares);
-        let status;
-        if (winner){
-            status = 'THE WINNER IS: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }
-
         /** @return status & game board */
         return (
             <div>
-                <div className="status">{status}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -96,15 +60,66 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+    constructor(){
+        super();
+        /**
+         * @prop 
+         * @param {array} history - contains the history of the value of game squares - 'X', 'O', null
+         * @param {bool} xIsNext - determines which value plays next
+         */
+        this.state={
+            history: [{
+                squares: Array(9).fill(null),
+            }],
+            xIsNext: true,
+        };
+    }
+
+    /**
+     * @method handles square click event
+     * @param {*} i 
+     */
+    handleClick(i) {
+        //* copies the squares array for immutability */
+        const history = this.state.history;
+        const current = history[history.length - 1];
+        const squares = current.squares.slice();
+        if (calculateWinner(squares) || squares[i]) {
+            return;
+        }
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        //sets this.state.squares equal to the array that was just copied
+        this.setState({
+            history: history.concat([{
+                squares: squares,
+            }]),            
+            xIsNext: !this.state.xIsNext,
+        });
+    }
+
     render() {
+        const history = this.state.history;
+        const current = history[history.length - 1];
+        /** calls helper function to determine game status */
+        const winner = calculateWinner(current.squares);
+        let status;
+        if (winner){
+            status = 'THE WINNER IS: ' + winner;
+        } else {
+            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+        }
+
         return (
             //sets up the game and divides the DOM into a div for the board and a div for the game-info
             <div className="game">
                 <div className="game-board">
-                    <Board />
+                    <Board 
+                        squares={current.squares}
+                        onClick={(i) => this.handleClick(i)}
+                    />
                 </div>
                 <div className="game-info">
-                    <div>{}</div>
+                    <div>{status}</div>
                     <div>{}</div>
                 </div>
             </div>
