@@ -4,7 +4,7 @@ import './index.css';
 
 /**Square - Stateless functional component that makes up the game squares */
 function Square(props) {
-    //displays the value passed by the renderSquare(i) method of the Board component
+    /** @return square component with @prop value and @prop click handler */
     return (
         <button className="square" onClick={props.onClick}>
             {props.value}
@@ -43,15 +43,16 @@ class Board extends React.Component {
             />
         );
     }
-
+    /**
+     * @method handles square click event
+     * @param {*} i 
+     */
     handleClick(i){
-        //makes a copy of the this.state.squares array - this makes the function immutable and expands the options for what we can do with it
+        //* copies the squares array for immutability */
         const squares = this.state.squares.slice();
-        //if there is a winner or if the square is no longer empty (null), no action is taken
         if (calculateWinner(squares) || squares[i]){
             return;
         }
-        //stores the square value locally
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         //sets this.state.squares equal to the array that was just copied
         this.setState({
@@ -61,7 +62,7 @@ class Board extends React.Component {
     }
 
     render() {
-        //calls helper calculateWinner function to determine the status
+        /** calls helper function to determine game status */
         const winner = calculateWinner(this.state.squares);
         let status;
         if (winner){
@@ -70,7 +71,7 @@ class Board extends React.Component {
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
 
-        //sets up the game board by rendering squares with the renderSquare(i) method defined above
+        /** @return status & game board */
         return (
             <div>
                 <div className="status">{status}</div>
