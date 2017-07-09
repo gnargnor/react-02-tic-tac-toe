@@ -14,15 +14,11 @@ function Square(props) {
 
 /** Board - Class representing the game board */
 class Board extends React.Component {
-    /**
-     * @constructor Manages the state of the square values, keeps track of whether X or O is up next.
-     * @param {*} props 
-     */
     constructor(props){
         super(props);
     }
     /**
-     * @method renders square component class
+     * renders square component class
      * @param {number} i - square number
      * @return Square element
      */
@@ -34,9 +30,8 @@ class Board extends React.Component {
             />
         );
     }
-
+    /** renders game board */
     render() {
-        /** @return status & game board */
         return (
             <div>
                 <div className="board-row">
@@ -59,54 +54,79 @@ class Board extends React.Component {
     }
 }
 
+/** Game class */
 class Game extends React.Component {
     constructor(){
         super();
         /**
-         * @prop 
+         * @this game state
          * @param {array} history - contains the history of the value of game squares - 'X', 'O', null
          * @param {bool} xIsNext - determines which value plays next
+         * @param {number} stepNumber - keeps track of step
          */
         this.state={
             history: [{
                 squares: Array(9).fill(null),
             }],
-            xIsNext: true,
+            stepNumber: 0,
+            xIsNext: true,            
         };
+    }
+    /**
+     * jump between steps
+     * @param {number} step 
+     */
+    jumpTo(step) {
+        this.setState({
+            stepNumber: step,
+            xIsNext: (step % 2) === 0,
+        })
     }
 
     /**
-     * @method handles square click event
-     * @param {*} i 
+     * handles square click event
+     * @param {number} i - square number clicked
      */
     handleClick(i) {
-        //* copies the squares array for immutability */
-        const history = this.state.history;
+        /**
+         * local variables
+         * @param {array} history - game history at current step
+         * @param {array} current - stores current state of squares, value of xIsNext
+         * @param {array} squares - copy of the current state of the squares for immutability
+         */
+        const history = this.state.history.slice(0, this.state.stepNumber +1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
         if (calculateWinner(squares) || squares[i]) {
             return;
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
-        //sets this.state.squares equal to the array that was just copied
         this.setState({
             history: history.concat([{
                 squares: squares,
             }]),            
             xIsNext: !this.state.xIsNext,
+            stepNumber: history.length,
         });
     }
-
+    /**
+     * renders game component
+     */
     render() {
+        /**
+         * local variables
+         * @param {array} history - game history at current step
+         * @param {array} current - stores current state of squares, value of xIsNext
+         * @param {string} winner - null or winner ('X' or 'O')
+         */
         const history = this.state.history;
-        const current = history[history.length - 1];
-        /** calls helper function to determine game status */
+        const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
         const moves = history.map((step, move) => {
             const desc = move ? 'Move #' + move : 'Game start';
             return (
-                <li>
+                <li key={move}>
                     <a href="#" onClick={() => this.jumpTo(move)}>{desc}</a>
                 </li>
             );
@@ -118,9 +138,8 @@ class Game extends React.Component {
         } else {
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
-
+        /** returns board, status, and moves */
         return (
-            //sets up the game and divides the DOM into a div for the board and a div for the game-info
             <div className="game">
                 <div className="game-board">
                     <Board 
@@ -137,16 +156,18 @@ class Game extends React.Component {
     }
 }
 
-//=====
-
+/** Renders game to DOM */
 ReactDOM.render(
     <Game />,
     document.getElementById('root')
 );
 
-//helper function - hoisted where it needs to be
+/**
+ * determines if there is a winner based on all possible winning combinations- helper function
+ * @param {array} squares 
+ * @return null or winner ('X' or 'O')
+ */
 function calculateWinner(squares){
-    //all possible winning combos
     const lines = [
         [0,1,2],
         [3,4,5],
@@ -157,13 +178,11 @@ function calculateWinner(squares){
         [0,4,8],
         [2,4,6],
     ];
-    //cycle through combos to determine if there is a winner - if there is a 3 in a row match, return the value of the winner - X or O
     for (let i = 0; i < lines.length; i++) {
         const [a,b,c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
             return squares[a];
         }
     }
-    //otherwise keep playing
     return null;
 }
